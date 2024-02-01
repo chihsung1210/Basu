@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- <script src="./js/vue.global.js"></script> -->
+	  <script src="./js/jquery.min.js"></script>
+    <script src="./js/bootstrap.bundle.min.js"></script>
+	  <script src="./js/axios.min.js"></script>
+    
+	  <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <title>背書</title>
+    <style>
+      body {background-color: DarkSlateGrey;}
+      .list-group-item {background-color: DarkSlateGrey;}
+  </style>
+</head>
+<body>
+  
+<!--input  type="hidden" id="id" name="id" value=""-->
+    <div id= "app" style="color:white">       
+        <input type="checkbox" v-model = "prefix" id="short" name="short" value=1>
+        
+        <h3>{{message}}</h3><a href="./index.html">返回</a>
+        <ul class="list-group">
+            <li v-for="item in info" class="list-group-item" >
+               
+                <!--{{item.split(',')[0]}}, {{item.split(',')[1]}}-->
+               <h5 v-html=reitem(item)></h5></li>
+            </li>
+          
+        </ul>
+    </div>
+    <script>
+      let optdata = {
+  data(){
+    return{
+      prefix:0,
+      message:"",  
+      info: null
+    }
+  },
+  mounted () {
+    var id = window.location.search.split('=')[1];
+    var url = './data/' + id + '.json';
+    console.log(url);
+    axios
+    .get(url)
+    //.get('ggsong.json')
+    //.then(response => (this.info = response.data.lists))
+    /*
+    .then(function(response){ 
+      console.log(response);
+      this.info = response.data.lists;
+      this.message = response.data.title;
+      })
+      */
+      .then(response =>{
+        console.log(response);
+        this.info = response.data.lists;
+        this.message = response.data.title;
+
+      })
+      .catch(function (error) {
+        console.log(error);
+        });
+        },
+        methods: {
+                reitem(item) {
+                  
+                  //item = item.replace(/:/g,",");
+                  //item = item.replace(/、/g,",");
+                  //item = item.replace(/:「/g,",");
+                  
+                    //var rarr = item.split(',');
+                    if (this.prefix > 0) {    // 打勾
+
+                      
+                      item = item.replace(/、/g,",");
+                      item = item.replace(/:「/g,",");
+                      item = item.replace(/:/g,",");
+                      item = item.replace(/」。/g,",");
+                      //item = item.replace(/。/g,",");
+                      item = item.replace(/;/g,",");
+                      item = item.replace(/？/g,",");
+                      item = item.replace(/。/g,",");
+
+                      var rarr = item.split(',');
+                          
+                      //return rarr[0].substr(0,2),rarr[1].substr(0,2);
+
+                      var retstr = '';
+                      for(let i = 0; i < rarr.length; i++){ 
+                        if (i < rarr.length - 1){
+                          if (rarr[i].substr(0,1) == "["){
+                          retstr += '<h6>'+ rarr[i]
+                         
+                          }else{
+                            retstr += rarr[i].substr(0,2) + ','
+                          }
+
+                        }else{
+                          if (rarr[i].substr(0,1) == "["){
+                          retstr += '<h6>'+ rarr[i]
+                          
+                          }else{
+                            retstr += rarr[i].substr(0,2)
+                          }
+                        }
+                      }
+
+                      //return rarr[0].substr(0,2) +'  ,  '+rarr[1].substr(0,2);
+                      return retstr;
+
+                    }else{
+                      item = item.replace("[","<h6>[");
+                      //item = item.replace(/[/g,",");
+                      //item = item.replace(/]/g,",");
+                        return item;
+                    }
+               
+                }
+             }      
+};
+
+const app = Vue.createApp(optdata).mount("#app");   
+    </script>
+</body>
+</html>
