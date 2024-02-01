@@ -14,6 +14,30 @@
     <style>
       body {background-color: DarkSlateGrey;}
       .list-group-item {background-color: DarkSlateGrey;}
+      .list-groupa {
+        --bs-list-group-color: var(--bs-body-color);
+        --bs-list-group-bg: var(--bs-body-bg);
+        
+        --bs-list-group-border-width: var(--bs-border-width);
+        --bs-list-group-border-radius: var(--bs-border-radius);
+        --bs-list-group-item-padding-x: 1rem;
+        --bs-list-group-item-padding-y: 0.5rem;
+        --bs-list-group-action-color: var(--bs-secondary-color);
+        --bs-list-group-action-hover-color: var(--bs-emphasis-color);
+        --bs-list-group-action-hover-bg: var(--bs-tertiary-bg);
+        --bs-list-group-action-active-color: var(--bs-body-color);
+        --bs-list-group-action-active-bg: var(--bs-secondary-bg);
+        --bs-list-group-disabled-color: var(--bs-secondary-color);
+        --bs-list-group-disabled-bg: var(--bs-body-bg);
+        --bs-list-group-active-color: #fff;
+        --bs-list-group-active-bg: #0d6efd;
+        --bs-list-group-active-border-color: #0d6efd;
+        display: flex;
+        flex-direction: column;
+        padding-left: 0;
+        margin-bottom: 0;
+        border-radius: var(--bs-list-group-border-radius);
+    }
   </style>
 </head>
 <body>
@@ -23,11 +47,11 @@
         <input type="checkbox" v-model = "prefix" id="short" name="short" value=1>
         
         <h3>{{message}}</h3><a href="./index.html">返回</a>
-        <ul class="list-group">
+        <ul class="list-groupa">
             <li v-for="item in info" class="list-group-item" >
                
                 <!--{{item.split(',')[0]}}, {{item.split(',')[1]}}-->
-               <h5 v-html=reitem(item)></h5></li>
+               <h5 style="color:white" v-html=reitem(item)></h5></li>
             </li>
           
         </ul>
