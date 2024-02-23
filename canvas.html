@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <style>
+    canvas {
+      background-color: lightgray;
+    }
+
+    .focus_font {
+      font-weight: bold;
+    }
+
+    .custom-cur {
+      cursor: url('./eraser.cur'), auto;
+      ;
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="canvas" width="800" height="600"></canvas>
+
+  <div id="tools" class='focus_font'>
+    <button id='drawRect' onclick="drawRect()">Rectangle</button>
+    <button id='drawLine' onclick="drawLine()">Line</button>
+    <button id='drawCircle' onclick="drawCircle()">Circle</button>
+    <button id='HandDraw' onclick="HandDraw()">HandDraw</button>
+    <button id='Clear' onclick="Clear()">Clear</button>
+    <button id='undo' onclick="undo()">Undo</button>
+    <button id='Eraser' onclick="Eraser()">Eraser</button>
+
+    <input id="theText" type="text">
+    <button id='drawText' onclick="drawText()">Text</button>
+    <button onclick="debug()">dubug</button>
+  </div>
+  <script>
+    var canvas = document.getElementById('canvas'); // 得到畫布
+    var ctx = canvas.getContext('2d'); // 得到畫布的上下文物件
+    ctx.strokeStyle = "#0000ff";
+    ctx.lineWidth = 2.0;
+    //canvas.style.cursor = 'pointer';
+
+    var flag = false;
+    var x = 0; // 滑鼠開始移動的位置X
+    var y = 0; // 滑鼠開始移動的位置Y
+    var url = ''; // canvas圖片的二進位制格式轉為dataURL格式
+    var shape;
+    var pp = new Array();
+    var np = new Array();
+    var startX;
+    var startY;
+    let step = -1;
+    var selectedText = -1;
+    let userhistory = [];
+    let texts = []
+    Clear();
+
+
+    function debug() {
+      for (var i = 0; i < texts.length; i++) {
+        text = texts[i];
+        console.log('text[' + i + '] ==>', text.text);
+        console.log('x==>', text.x);
+        console.log('y==>', text.y);
+        console.log();
+      }
+    }
+    //存放步驟結束當下的陣列
+    function push() {
+      step++;
+      if (step < userhistory.length - 1) {
+        userhistory.length = step + 1;
+      }
+      userhistory.push(canvas.toDataURL()); //當前影像存成 Base64 編碼的字串並放入陣列
+      //alert(step);
+    }
+
+    function Clear(e) {
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      //url = '';
+      drawMediumGrid(canvas);
+      //url = ctx.toDataURL();
+      url = $('canvas')[0].toDataURL();
+
+      step = -1;
+      selectedText = -1;
+      userhistory = [];
+      texts = [];
+
+      //loadImage();
+
+    }
+
+    //上一步的function
+    function undo() {
+      if (step >= 0) {
+        step--;
+        var canvaspic = new Image(); //建立新的 Image
+        canvaspic.src = userhistory[step]; //載入剛剛存放的影像
+        //canvaspic.src = userhistory.pop(); //載入剛剛存放的影像
+        //url = userhistory[step]; //sammy add
+        canvaspic.onload = function () {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(canvaspic, 0, 0); //匯出影像並從座標 x:0 y:0 開始
+          url = $('canvas')[0].toDataURL();
+          //alert(step);
+          userhistory.pop();
+        };
+      }
+
+
+    }
+
+
+    //drawMediumGrid(canvas);
+    function drawRect(e) {
+      shape = 1;
+      //ctx.strokeStyle = "#0000ff";
+      //ctx.lineWidth = 2.2;
+      if (flag) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        loadImage();
+        ctx.beginPath();
+        ctx.strokeRect(x, y, e.offsetX - x, e.offsetY - y);
+      }
+    }
+    function drawLine(e) {
+      shape = 2;
+      ctx.strokeStyle = "#0000ff";
+      if (flag) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        loadImage();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+      }
+    }
+
+    function drawCircle(e) {
+      shape = 3;
+      if (flag) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        loadImage();
+        ctx.beginPath();
+        var rx = (e.offsetX - x) / 2;
+        var ry = (e.offsetY - y) / 2;
+        var r = Math.sqrt(rx * rx + ry * ry);
+        ctx.arc(rx + x, ry + y, r, 0, Math.PI * 2); // 第5個引數預設是false-順時針
+        ctx.stroke();
+      }
+    }
+    function textHittest(x, y, textIndex) {
+
+      var text = texts[textIndex];
+      //alert(text.text);
+      return (x >= text.x && x <= text.x + text.width && y >= text.y - text.height && y <= text.y);
+    }
+
+    function drawText(e) {
+
+      shape = 5;
+      // calc the y coordinate for this text on the canvas
+      var y = texts.length * 20 + 20;
+
+      // get the text from the input element
+      var text = {
+        text: $("#theText").val(),
+        x: 120,
+        y: y
+      };
+
+
+      //alert(text.text.length);
+      // calc the size of this text for hit-testing purposes
+      ctx.font = "16px verdana";
+      text.width = ctx.measureText(text.text).width;
+      text.height = 16;
+      if (text.text.length > 0) {
+
+        texts.push(text);
+        ctx.fillText(text.text, text.x, text.y);
+        //url = canvas.toDataURL();
+        $("#theText").val('');
+      } else {
+        /**/
+      }
+
+    }
+
+    function moveText(e) {
+      if (flag) {
+        if (selectedText < 0) {
+          return;
+        }
+
+        texts[selectedText].x = np[0];
+        texts[selectedText].y = np[1];
+
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        loadImage();
+        for (var i = 0; i < texts.length; i++) {
+          var text = texts[i];
+          ctx.fillText(text.text, text.x, text.y);
+
+        }
+
+        //下一點的位置=新的起始點
+        pp[0] = np[0];
+        pp[1] = np[1];
+      }
+
+    }
+
+    function Eraser(e) {
+      ctx.strokeStyle = "lightgray";
+      ctx.lineWidth = 6;
+      shape = 6;
+      if (flag) {
+
+        ctx.beginPath();
+        ctx.moveTo(pp[0], pp[1]);
+        ctx.lineTo(np[0], np[1]);
+        ctx.closePath();
+        ctx.stroke();
+        //下一點的位置=新的起始點
+        pp[0] = np[0];
+        pp[1] = np[1];
+
+      }
+    }
+    function HandDraw(e) {
+      ctx.strokeStyle = "#0000ff";
+      shape = 4;
+      if (flag) {
+
+        ctx.beginPath();
+        ctx.moveTo(pp[0], pp[1]);
+        ctx.lineTo(np[0], np[1]);
+        ctx.closePath();
+        ctx.stroke();
+        //下一點的位置=新的起始點
+        pp[0] = np[0];
+        pp[1] = np[1];
+
+      }
+    }
+
+    function loadImage() {
+      var img = new Image();
+      img.src = url;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
+
+
+    function drawMediumGrid(c_canvas) {
+      /*
+      ctx = c_canvas.getContext("2d");
+      ctx.strokeStyle = "#e5e5e5";
+      ctx.strokeWidth = 2
+      //寬度是小網格的2倍
+      ctx.beginPath();
+      for (var x = 0.5; x < 750; x += 15) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 750);
+        ctx.stroke();
+      }
+      for (var y = 0.5; y < 750; y += 15) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(750, y);
+        ctx.stroke();
+      }
+      //ctx.closePath();
+      //url = ctx.toDataURL();
+      */
+      return;
+    }
+    //
+
+    /* 為canvas繫結mouse事件 */
+    $('canvas').mousedown(function (e) {
+      flag = true;
+      pp = new Array();
+      np = new Array();
+      x = e.offsetX; // 滑鼠落下時的X
+      y = e.offsetY; // 滑鼠落下時的Y
+      if (shape == 4) {
+        ctx.moveTo(x, y);
+      }
+
+      if (shape == 5) {
+        //startX = parseInt(e.clientX - offsetX);
+        //startY = parseInt(e.clientY - offsetY);
+        // Put your mousedown stuff here
+        for (var i = 0; i < texts.length; i++) {
+          if (textHittest(x, y, i)) {
+            selectedText = i;
+            //alert(i);
+          }
+        }
+      }
+
+      $(this).mousemove(function (e) {
+        //console.log("OK Moved!");
+        if (shape == 1) {
+          drawRect(e); // 繪製方形
+
+        }
+        if (shape == 2) {
+          drawLine(e); // 繪製直線
+        }
+        if (shape == 3) {
+          drawCircle(e); // 繪製圓圈
+        }
+        if (shape == 4) {
+          //drawRect(e);
+          if (pp[0] == -1 && pp[1] == -1) {
+            //pp = [e.pageX, e.pageY];
+            pp = [e.offsetX, e.offsetY];
+          }
+          //紀錄下一點的位置
+          //np = [e.pageX, e.pageY];
+          np = [e.offsetX, e.offsetY];
+          HandDraw(e); // 手繪
+        }
+        if (shape == 5) {
+          if (flag) {
+            canvas.style.cursor = 'move';
+          }
+          if (pp[0] == -1 && pp[1] == -1) {
+            //pp = [e.pageX, e.pageY];
+            pp = [e.offsetX, e.offsetY];
+          }
+          //紀錄下一點的位置
+          //np = [e.pageX, e.pageY];
+          np = [e.offsetX, e.offsetY];
+          moveText(e);
+          //if (selectedText < 0) {
+          //  return;
+          //}
+
+          //
+
+          //
+        }
+
+        if (shape == 6) {
+          //drawRect(e);
+          if (pp[0] == -1 && pp[1] == -1) {
+            //pp = [e.pageX, e.pageY];
+            pp = [e.offsetX, e.offsetY];
+          }
+          //紀錄下一點的位置
+          //np = [e.pageX, e.pageY];
+          np = [e.offsetX, e.offsetY];
+          Eraser(e); // 手繪
+        }
+
+      });
+    }).mouseup(function (e) {
+      flag = false;
+      pp = [-1, -1];
+      if (shape != 5) {
+        url = $('canvas')[0].toDataURL(); // 每次 mouseup 都儲存一次畫布狀態
+        //alert(url);
+        //if (shape == 1) {
+        push();
+        //}
+      }
+    });
+
+    $('#drawRect').click(function () {
+      $('#tools button').removeClass('focus_font');
+      // $('#tools').removeClass('focus_font');
+      $(this).addClass('focus_font');
+      $('canvas').removeClass('custom-cur');
+    });
+    $('#drawLine').click(function () {
+      $('#tools button').removeClass('focus_font');
+      $(this).addClass('focus_font');
+      $('canvas').removeClass('custom-cur');
+    });
+    $('#drawCircle').click(function () {
+      $('#tools button').removeClass('focus_font');
+      $(this).addClass('focus_font');
+      $('canvas').removeClass('custom-cur');
+    });
+    $('#HandDraw').click(function () {
+      $('#tools button').removeClass('focus_font');
+      $(this).addClass('focus_font');
+      $('canvas').removeClass('custom-cur');
+    });
+
+    $('#Clear').click(function () {
+      $('#tools button').removeClass('focus_font');
+      $(this).addClass('focus_font');
+      $('canvas').removeClass('custom-cur');
+    });
+
+    $('#undo').click(function () {
+      $('#tools button').removeClass('focus_font');
+      $(this).addClass('focus_font');
+      $('canvas').removeClass('custom-cur');
+    });
+
+    $('#Eraser').click(function () {
+      $('#tools button').removeClass('focus_font');
+      $(this).addClass('focus_font');
+      $('canvas').addClass('custom-cur');
+
+    });
+
+    $('#drawText').click(function () {
+      $('#tools button').removeClass('focus_font');
+      $(this).addClass('focus_font');
+      $('canvas').removeClass('custom-cur');
+
+    });
+  </script>
+
+
+</body>
+
+</html>
