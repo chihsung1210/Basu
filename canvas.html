@@ -288,7 +288,7 @@
     //
 
     /* 為canvas繫結mouse事件 */
-    $('canvas').mousedown(function (e) {
+    $('canvas').touchstart(function (e) { //原mousedown
       flag = true;
       pp = new Array();
       np = new Array();
@@ -310,7 +310,7 @@
         }
       }
 
-      $(this).mousemove(function (e) {
+      $(this).touchmove(function (e) { //原mousemove
         //console.log("OK Moved!");
         if (shape == 1) {
           drawRect(e); // 繪製方形
@@ -367,7 +367,7 @@
         }
 
       });
-    }).mouseup(function (e) {
+    }).touchend(function (e) { //原mouseup
       flag = false;
       pp = [-1, -1];
       if (shape != 5) {
