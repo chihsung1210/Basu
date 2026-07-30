@@ -15,7 +15,7 @@
 				{ "name":"弟子規", "url": "show.html?id=dizga" },
 				{ "name":"七支供養偈", "url": "show.html?id=chigekonyang" },
                 { "name":"入行論第一品", "url": "show.html?id=rushinchap1" },
-			    { "name":"道德經", "url": "show.html?id=dowdowdow" }
+			    { "name":"道德經(上篇:1-37)", "url": "show.html?id=dowdowdow" }
         ],
         "wisdoms" : [
             { "head":"智慧小語", "content": "世界上有不幸的事，也有吉祥和幸運的事。它們各自有因。如果能善巧了達諸法的作用、深信因果，我們才能離開苦因和苦果，得到樂因和樂果。" },
