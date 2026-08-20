@@ -3,6 +3,7 @@
         "num":3,
         "lists": [
                 { "name":"廣論節錄", "url": "show.html?id=guanglun" },
+                 { "name":"三十五佛懺", "url": "show.html?id=buda35" },
                 { "name":"歸敬頌", "url": "show.html?id=ggsong" },
 				{ "name":"菩提道次第攝頌", "url": "show.html?id=putidousirsong" },
                 { "name":"修心八偈", "url": "show.html?id=ssbg" },
